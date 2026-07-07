@@ -1,0 +1,114 @@
+vps-prod-01 ansible_host=vps-prod-01.dontddos.me ansible_user=root
+vps-prod-02 ansible_host=vps-prod-02.dontddos.me ansible_user=root
+
+pve-prod-01 ansible_host=pve-prod-01.internal.dontddos.me ansible_user=root
+pve-prod-02 ansible_host=pve-prod-02.internal.dontddos.me ansible_user=root
+pve-prod-03 ansible_host=pve-prod-03.internal.dontddos.me ansible_user=root
+
+nb-prod-01 ansible_host=nb-prod-01.internal.dontddos.me ansible_user=root
+nb-prod-02 ansible_host=nb-prod-02.internal.dontddos.me ansible_user=root
+
+dns-prod-01 ansible_host=dns-prod-01.internal.dontddos.me ansible_user=ddos
+dns-prod-02 ansible_host=dns-prod-02.internal.dontddos.me ansible_user=ddos
+
+calagopus-prod-01 ansible_host=calagopus-prod-01.internal.dontddos.me ansible_user=ddos
+wings-prod-01 ansible_host=wings-prod-01.internal.dontddos.me ansible_user=ddos
+
+media-prod-01 ansible_host=media-prod-01.internal.dontddos.me ansible_user=ddos
+media-prod-02 ansible_host=media-prod-02.internal.dontddos.me ansible_user=ddos
+
+gl-prod-01 ansible_host=gl-prod-01.internal.dontddos.me ansible_user=ddos
+
+k3s-prod-01 ansible_host=k3s-prod-01.internal.dontddos.me ansible_user=ddos
+k3s-prod-02 ansible_host=k3s-prod-02.internal.dontddos.me ansible_user=ddos
+k3s-prod-03 ansible_host=k3s-prod-03.internal.dontddos.me ansible_user=ddos
+k3s-prod-04 ansible_host=k3s-prod-04.internal.dontddos.me ansible_user=ddos
+k3s-prod-05 ansible_host=k3s-prod-05.internal.dontddos.me ansible_user=ddos
+k3s-prod-06 ansible_host=k3s-prod-06.internal.dontddos.me ansible_user=ddos
+k3s-prod-07 ansible_host=k3s-prod-07.internal.dontddos.me ansible_user=ddos
+
+mon-prod-01 ansible_host=mon-prod-01.internal.dontddos.me ansible_user=ddos
+
+
+[media]
+media-prod-01
+media-prod-02
+
+[vps]
+vps-prod-01
+vps-prod-02
+
+[pve]
+pve-prod-01
+pve-prod-02
+pve-prod-03
+
+[nb]
+nb-prod-01
+nb-prod-02
+
+[dns]
+dns-prod-01
+dns-prod-02
+
+[media]
+media-prod-01
+media-prod-02
+
+
+[k3s]
+k3s-prod-01
+k3s-prod-02
+k3s-prod-03
+k3s-prod-04
+k3s-prod-05
+k3s-prod-06
+k3s-prod-07
+
+[k3s_cl_prod_01]
+k3s-prod-01
+k3s-prod-02
+k3s-prod-03
+k3s-prod-04
+
+[k3s_cl_prod_01_cp]
+k3s-prod-01
+k3s-prod-02
+k3s-prod-03
+
+[k3s_cl_prod_02]
+k3s-prod-05
+k3s-prod-06
+k3s-prod-07
+
+[k3s_cl_prod_02_cp]
+k3s-prod-05
+k3s-prod-06
+k3s-prod-07
+
+[debian_updates:children]
+pve
+nb
+dns
+vps
+media
+k3s
+
+[debian_updates]
+calagopus-prod-01
+wings-prod-01
+gl-prod-01
+mon-prod-01
+
+[debian]
+calagopus-prod-01
+wings-prod-01
+gl-prod-01
+mon-prod-01
+
+[debian:children]
+nb
+dns
+vps
+media
+pve

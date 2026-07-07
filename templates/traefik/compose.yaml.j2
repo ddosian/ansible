@@ -1,0 +1,23 @@
+---
+services:
+  traefik:
+    image: traefik:v3.6.12
+    container_name: traefik-{{ inventory_hostname }}
+    environment:
+      - TZ=Etc/UTC
+      - CF_DNS_API_TOKEN={{ cloudflare_api_token }}
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yaml:/traefik.yml
+      - ./config/dynamic:/config/dynamic
+      - ./certs:/certs
+    networks:
+      - frontend
+    restart: unless-stopped
+
+networks:
+  frontend:
+    external: true

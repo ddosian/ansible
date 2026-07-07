@@ -1,0 +1,14 @@
+vrrp_instance VI_1 {
+  state {{ keepalived_state }}
+  interface eth0
+  virtual_router_id 52
+  priority {{ keepalived_priority }}
+  advert_int 1
+  authentication {
+    auth_type PASS
+    auth_pass {{ k3s_cl_prod_02_cp_keepalived_password }}
+  }
+  virtual_ipaddress {
+    10.81.0.10
+  }
+}

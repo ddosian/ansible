@@ -1,0 +1,14 @@
+---
+- name: K3s Longhorn Preflight
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: true
+    - name: Install required packages
+      apt:
+        name:
+          - nfs-common
+          - open-iscsi
+        state: present

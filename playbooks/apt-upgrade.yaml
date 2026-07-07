@@ -1,0 +1,12 @@
+---
+- name: APT Upgrade
+  hosts: debian_updates
+  become: true
+
+  tasks:
+    - name: Update
+      apt:
+        update_cache: true
+    - name: Upgrade
+      apt:
+        upgrade: true

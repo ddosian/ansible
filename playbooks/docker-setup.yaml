@@ -1,0 +1,199 @@
+---
+- name: Install & Setup Docker
+  hosts: debian
+  become: true
+  vars_files:
+    - ../vault.enc
+  tasks:
+    - name: Check if Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Docker
+      ansible.builtin.shell: |
+        set -e
+
+        apt-get update
+        apt-get install -y ca-certificates curl
+
+        install -m 0755 -d /etc/apt/keyrings
+
+        curl -fsSL https://download.docker.com/linux/debian/gpg \
+          -o /etc/apt/keyrings/docker.asc
+
+        chmod a+r /etc/apt/keyrings/docker.asc
+
+        cat > /etc/apt/sources.list.d/docker.sources <<'EOF'
+        Types: deb
+        URIs: https://download.docker.com/linux/debian
+        Suites: bookworm
+        Components: stable
+        Architectures: amd64
+        Signed-By: /etc/apt/keyrings/docker.asc
+        EOF
+
+        apt-get update
+
+        apt-get install -y \
+          docker-ce \
+          docker-ce-cli \
+          containerd.io \
+          docker-buildx-plugin \
+          docker-compose-plugin
+      args:
+        executable: /bin/bash
+      when: docker_check.rc != 0
+
+    - name: Add ddos user to docker group
+      ansible.builtin.user:
+        name: ddos
+        groups: docker
+        append: true
+    - name: Create directory for certificates
+      ansible.builtin.file:
+        path: /etc/docker/certs
+        state: directory
+        mode: "0755"
+    - name: Gather host IP address
+      ansible.builtin.set_fact:
+        ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+    - name: Generate CA Private Key
+      ansible.builtin.command:
+        cmd: openssl genrsa -out ca-key.pem 4096
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/ca-key.pem
+    - name: Generate CA Certificate
+      ansible.builtin.command:
+        cmd: openssl req -new -x509 -days 365000 -key ca-key.pem -sha256 -out ca.pem -subj "/C=GB/ST=England/L=London/O=DontDDoS/OU=None/CN={{ ansible_host }}/emailAddress=admin@dontddos.me"
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/ca.pem
+    - name: Generate Server Private Key
+      ansible.builtin.command:
+        cmd: openssl genrsa -out server-key.pem 4096
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/server-key.pem
+    - name: Generate Server Certificate Signing Request
+      ansible.builtin.command:
+        cmd: openssl req -subj "/CN={{ ansible_host }}" -sha256 -new -key server-key.pem -out server.csr
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/server.csr
+    - name: Generate extfile.cnf for Server Certificate
+      ansible.builtin.copy:
+        dest: /etc/docker/certs/extfile.cnf
+        content: |
+          subjectAltName = DNS:{{ ansible_host }},IP:{{ ip }},IP:127.0.0.1
+          extendedKeyUsage = serverAuth
+    - name: Sign Server Certificate with CA
+      ansible.builtin.command:
+        cmd: openssl x509 -req -days 365000 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf -subj "/CN={{ ansible_host }}"
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/server-cert.pem
+    - name: Generate Client Private Key
+      ansible.builtin.command:
+        cmd: openssl genrsa -out key.pem 4096
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/key.pem
+    - name: Generate Client Certificate Signing Request
+      ansible.builtin.command:
+        cmd: openssl req -subj '/CN={{ ansible_host }}' -new -key key.pem -out client.csr
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/client.csr
+    - name: Generate extfile-client.cnf
+      ansible.builtin.copy:
+        dest: /etc/docker/certs/extfile-client.cnf
+        content: |
+          extendedKeyUsage = clientAuth
+    - name: Sign Client Certificate with CA
+      ansible.builtin.command:
+        cmd: openssl x509 -req -days 365000 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile-client.cnf -subj '/CN={{ ansible_host }}'
+        chdir: /etc/docker/certs
+        creates: /etc/docker/certs/cert.pem
+    - name: Set permissions on certificates (0400)
+      ansible.builtin.file:
+        path: /etc/docker/certs/{{ item }}
+        mode: "0400"
+      with_items:
+        - ca-key.pem
+        - key.pem
+        - server-key.pem
+    - name: Set permissions on certificates (0444)
+      ansible.builtin.file:
+        path: /etc/docker/certs/{{ item }}
+        mode: "0444"
+      with_items:
+        - ca.pem
+        - server-cert.pem
+        - cert.pem
+    - name: Create systemd override directory for Docker service
+      ansible.builtin.file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+        mode: "0755"
+    - name: Configure Docker daemon service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/docker.service.d/override.conf
+        content: |
+          [Service]
+          ExecStart=
+          ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://{{ ip }}:2376 --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/docker/certs/server-cert.pem --tlskey=/etc/docker/certs/server-key.pem
+      notify:
+        - Reload systemd and restart Docker
+    - name: Create docker user
+      ansible.builtin.user:
+        name: docker
+        system: true
+        shell: /bin/bash
+    - name: Add docker user to docker group
+      ansible.builtin.user:
+        name: docker
+        groups: docker
+        append: true
+    - name: Create .ssh directory for docker user
+      ansible.builtin.file:
+        path: /home/docker/.ssh
+        state: directory
+        owner: docker
+        group: docker
+        mode: "0700"
+    - name: Copy ssh public key to docker user
+      ansible.builtin.copy:
+        src: /Users/ddos/.ssh/docker.pub
+        dest: /home/docker/.ssh/authorized_keys
+        owner: docker
+        group: docker
+        mode: "0600"
+    - name: Create frontend network
+      command: docker network create frontend
+      ignore_errors: true
+    - name: Ensure Traefik dynamic config directory exists
+      ansible.builtin.file:
+        path: /containers/traefik/config/dynamic
+        state: directory
+        mode: "0755"
+    - name: Deploy Traefik configuration
+      ansible.builtin.template:
+        src: ../templates/traefik/traefik.yaml.j2
+        dest: /containers/traefik/config/traefik.yaml
+        mode: "0644"
+    - name: Deploy TLS configuration
+      ansible.builtin.template:
+        src: ../templates/traefik/tls.yaml.j2
+        dest: /containers/traefik/config/dynamic/tls.yaml
+        mode: "0644"
+    - name: Deploy Traefik Docker Compose file
+      ansible.builtin.template:
+        src: ../templates/traefik/compose.yaml.j2
+        dest: /containers/traefik/compose.yaml
+        mode: "0644"
+    - name: Start Traefik container
+      community.docker.docker_compose_v2:
+        project_src: /containers/traefik
+        state: present
+  handlers:
+    - name: Reload systemd and restart Docker
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: docker
+        state: restarted

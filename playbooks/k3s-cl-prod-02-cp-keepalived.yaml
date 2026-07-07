@@ -1,0 +1,29 @@
+---
+- name: Install & Setup Keepalived on k3s-cl-prod-02 control plane hosts
+  hosts: k3s_cl_prod_02_cp
+  become: true
+  vars_files:
+    - ../vault.enc
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: true
+    - name: Install Keepalived
+      apt:
+        name: keepalived
+        state: present
+    - name: Deploy keepalived config
+      template:
+        src: ../templates/keepalived/k3s-cl-prod-02-cp.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Enable systemd service
+      systemd_service:
+        name: keepalived
+        enabled: true
+    - name: Restart systemd service
+      systemd_service:
+        name: keepalived
+        state: "reloaded"
