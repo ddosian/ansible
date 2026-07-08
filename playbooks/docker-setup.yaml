@@ -182,6 +182,11 @@
         src: ../templates/traefik/tls.yaml.j2
         dest: /containers/traefik/config/dynamic/tls.yaml
         mode: "0644"
+    - name: Deploy Authentik middleware configuration
+      ansible.builtin.template:
+        src: ../templates/traefik/authentik-middleware.yaml.j2
+        dest: /containers/traefik/config/dynamic/authentik-middleware.yaml
+        mode: "0644"
     - name: Deploy Traefik Docker Compose file
       ansible.builtin.template:
         src: ../templates/traefik/compose.yaml.j2
@@ -190,6 +195,29 @@
     - name: Start Traefik container
       community.docker.docker_compose_v2:
         project_src: /containers/traefik
+        state: present
+    - name: Ensure Alloy config directory exists
+      ansible.builtin.file:
+        path: /containers/alloy
+        state: directory
+        mode: "0755"
+    - name: Deploy Alloy configuration
+      ansible.builtin.template:
+        src: ../templates/alloy/config.alloy.j2
+        dest: /containers/alloy/config.alloy
+        mode: "0644"
+    - name: Deploy Alloy Docker Compose file
+      ansible.builtin.template:
+        src: ../templates/alloy/compose.yaml.j2
+        dest: /containers/alloy/compose.yaml
+        mode: "0644"
+    - name: Stop Alloy container
+      community.docker.docker_compose_v2:
+        project_src: /containers/alloy
+        state: absent
+    - name: Start Alloy container
+      community.docker.docker_compose_v2:
+        project_src: /containers/alloy
         state: present
   handlers:
     - name: Reload systemd and restart Docker
