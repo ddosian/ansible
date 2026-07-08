@@ -15,12 +15,6 @@ prometheus.exporter.unix "local_system" {
     }
 }
 
-prometheus.scrape "scrape_metrics" {
-  targets         = prometheus.exporter.unix.local_system.targets
-  forward_to      = [prometheus.relabel.filter_metrics.receiver]
-  scrape_interval = "10s"
-}
-
 prometheus.exporter.cadvisor "docker" {
   docker_host = "unix:///var/run/docker.sock"
   storage_duration = "5m"
@@ -28,6 +22,25 @@ prometheus.exporter.cadvisor "docker" {
 
 prometheus.scrape "scrape_docker_metrics" {
   targets         = prometheus.exporter.cadvisor.docker.targets
+  forward_to      = [prometheus.relabel.filter_metrics.receiver]
+  scrape_interval = "10s"
+}
+
+prometheus.scrape "scrape_metrics" {
+  targets         = prometheus.exporter.unix.local_system.targets
+  forward_to      = [prometheus.relabel.filter_metrics.receiver]
+  scrape_interval = "10s"
+}
+
+prometheus.scrape "scrape_traefik_metrics" {
+  targets = [
+    {
+      "__address__" = "traefik-{{ inventory_hostname }}:8082",
+      "job"         = "traefik",
+      "instance"    = "{{ inventory_hostname }}",
+    },
+  ]
+
   forward_to      = [prometheus.relabel.filter_metrics.receiver]
   scrape_interval = "10s"
 }
@@ -52,3 +65,4 @@ prometheus.remote_write "metrics_service" {
         }
     }
 }
+

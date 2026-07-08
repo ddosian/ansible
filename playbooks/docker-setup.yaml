@@ -167,6 +167,9 @@
     - name: Create frontend network
       command: docker network create frontend
       ignore_errors: true
+    - name: Create monitoring network
+      command: docker network create monitoring
+      ignore_errors: true
     - name: Ensure Traefik dynamic config directory exists
       ansible.builtin.file:
         path: /containers/traefik/config/dynamic

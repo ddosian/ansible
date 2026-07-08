@@ -17,7 +17,13 @@ services:
       - /var/log:/var/log:ro
       - /var/lib/docker/:/var/lib/docker/:ro
       - /run/udev/data:/run/udev/data:ro
+    networks:
+      - monitoring
     restart: unless-stopped
 
 volumes:
   data:
+
+networks:
+  monitoring:
+    external: true
