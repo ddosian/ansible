@@ -1,0 +1,11 @@
+---
+- name: APT Upgrade
+  hosts: debian_updates
+  become: true
+
+  tasks:
+    - name: Deploy MOTD
+      ansible.builtin.template:
+        src: ../templates/motd.j2
+        dest: /etc/motd
+        mode: "0644"

@@ -1,0 +1,8 @@
+─────────────────────── System Information ───────────────────────
+        Hostname.........: {{ inventory_hostname }}
+        OS...............: {{ ansible_distribution }} {{ ansible_distribution_version }}
+        Architecture.....: {{ ansible_architecture }}
+        Kernel...........: {{ ansible_kernel }}
+        CPU Cores........: {{ ansible_processor_vcpus }}
+        Memory...........: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+──────────────────────────────────────────────────────────────────
