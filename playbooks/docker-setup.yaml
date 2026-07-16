@@ -126,6 +126,24 @@
         - ca.pem
         - server-cert.pem
         - cert.pem
+    - name: Fetch Docker CA certificate
+      ansible.builtin.fetch:
+        src: /etc/docker/certs/ca.pem
+        dest: "{{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/ca.pem"
+        flat: true
+
+    - name: Fetch Docker client certificate
+      ansible.builtin.fetch:
+        src: /etc/docker/certs/cert.pem
+        dest: "{{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/cert.pem"
+        flat: true
+
+    - name: Fetch Docker client key
+      ansible.builtin.fetch:
+        src: /etc/docker/certs/key.pem
+        dest: "{{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/key.pem"
+        flat: true
+
     - name: Create systemd override directory for Docker service
       ansible.builtin.file:
         path: /etc/systemd/system/docker.service.d
