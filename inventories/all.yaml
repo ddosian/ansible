@@ -18,6 +18,7 @@ media-prod-01 ansible_host=media-prod-01.internal.dontddos.me ansible_user=ddos
 media-prod-02 ansible_host=media-prod-02.internal.dontddos.me ansible_user=ddos
 
 gl-prod-01 ansible_host=gl-prod-01.internal.dontddos.me ansible_user=ddos
+gl-runner-prod-01 ansible_host=gl-runner-prod-01.internal.dontddos.me ansible_user=ddos
 
 k3s-prod-01 ansible_host=k3s-prod-01.internal.dontddos.me ansible_user=ddos
 k3s-prod-02 ansible_host=k3s-prod-02.internal.dontddos.me ansible_user=ddos
@@ -98,12 +99,14 @@ k3s
 calagopus-prod-01
 wings-prod-01
 gl-prod-01
+gl-runner-prod-01
 mon-prod-01
 
 [debian]
 calagopus-prod-01
 wings-prod-01
 gl-prod-01
+gl-runner-prod-01
 mon-prod-01
 
 [debian:children]
