@@ -1,0 +1,14 @@
+http:
+  routers:
+    {{ inventory_hostname }}:
+      rule: "Host(`{{ inventory_hostname }}.internal.dontddos.me`)"
+      entryPoints:
+        - https
+      service: {{ inventory_hostname }}
+      tls: {}
+
+  services:
+    {{ inventory_hostname }}:
+      loadBalancer:
+        servers:
+          - url: "https://{{ inventory_hostname }}.internal.dontddos.me:8006"
