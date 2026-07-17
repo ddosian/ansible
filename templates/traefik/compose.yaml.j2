@@ -20,6 +20,7 @@ services:
       - traefik.http.routers.traefik-{{ inventory_hostname }}.rule=Host(`traefik.{{ inventory_hostname }}.internal.dontddos.me`)
       - traefik.http.routers.traefik-{{ inventory_hostname }}.entrypoints=https
       - traefik.http.routers.traefik-{{ inventory_hostname }}.tls=true
+      - traefik.http.routers.traefik-{{ inventory_hostname }}.middlewares=authentik@file
     networks:
       - frontend
       - monitoring
