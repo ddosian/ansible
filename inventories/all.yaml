@@ -30,6 +30,9 @@ k3s-prod-07 ansible_host=k3s-prod-07.internal.dontddos.me ansible_user=ddos
 
 mon-prod-01 ansible_host=mon-prod-01.internal.dontddos.me ansible_user=ddos
 
+ts-prod-01 ansible_host=ts-prod-01.internal.dontddos.me ansible_user=root
+ts-prod-02 ansible_host=ts-prod-02.internal.dontddos.me ansible_user=root
+
 
 [media]
 media-prod-01
@@ -47,6 +50,10 @@ pve-prod-03
 [nb]
 nb-prod-01
 nb-prod-02
+
+[ts]
+ts-prod-01
+ts-prod-02
 
 [dns]
 dns-prod-01
@@ -90,6 +97,7 @@ k3s-prod-07
 [debian_updates:children]
 pve
 nb
+ts
 dns
 vps
 media
@@ -111,6 +119,7 @@ mon-prod-01
 
 [debian:children]
 nb
+ts
 dns
 vps
 media
