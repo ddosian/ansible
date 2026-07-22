@@ -240,6 +240,14 @@
       community.docker.docker_compose_v2:
         project_src: /containers/alloy
         state: present
+    - name: Create or update local Docker context for host
+      ansible.builtin.shell: |
+        docker context rm {{ inventory_hostname }} 2>/dev/null || true
+        docker context create {{ inventory_hostname }} \
+          --docker "host=tcp://{{ ip }}:2376,ca={{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/ca.pem,cert={{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/cert.pem,key={{ playbook_dir }}/../docker-keys/{{ inventory_hostname }}/key.pem"
+      delegate_to: localhost
+      become: false
+      changed_when: true
   handlers:
     - name: Reload systemd and restart Docker
       ansible.builtin.systemd:
