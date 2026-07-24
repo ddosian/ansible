@@ -35,6 +35,8 @@ ts-prod-02 ansible_host=ts-prod-02.internal.dontddos.me ansible_user=root
 
 immich-prod-01 ansible_host=immich-prod-01.internal.dontddos.me ansible_user=ddos
 
+infisical-prod-01 ansible_host=infisical-prod-01.internal.dontddos.me ansible_user=ddos
+
 
 [media]
 media-prod-01
@@ -112,6 +114,7 @@ gl-prod-01
 gl-runner-prod-01
 mon-prod-01
 immich-prod-01
+infisical-prod-01
 
 [debian]
 calagopus-prod-01
@@ -120,6 +123,7 @@ gl-prod-01
 gl-runner-prod-01
 mon-prod-01
 immich-prod-01
+infisical-prod-01
 
 [debian:children]
 nb
