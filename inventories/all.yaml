@@ -111,6 +111,7 @@ k3s
 calagopus-prod-01
 wings-prod-01
 gl-prod-01
+gl-runner-prod-01
 mon-prod-01
 immich-prod-01
 infisical-prod-01
@@ -119,6 +120,7 @@ infisical-prod-01
 calagopus-prod-01
 wings-prod-01
 gl-prod-01
+gl-runner-prod-01
 mon-prod-01
 immich-prod-01
 infisical-prod-01
