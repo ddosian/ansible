@@ -5,7 +5,7 @@ services:
     container_name: traefik-{{ inventory_hostname }}
     environment:
       - TZ=Etc/UTC
-      - CF_DNS_API_TOKEN={{ cloudflare_api_token }}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     ports:
       - 80:80
       - 443:443
