@@ -1,0 +1,60 @@
+- name: Install & Setup Docker
+  hosts: debian
+  become: true
+  vars_files:
+    - ../vault.enc
+  vars:
+    infisical_project_id: "dc24923a-0be2-41e7-b810-4aa1a6ac4a77"
+    infisical_secret_path: "/"
+    infisical_docker_cert_secrets:
+      - suffix: ca
+        file: ca.pem
+      - suffix: cert
+        file: cert.pem
+      - suffix: key
+        file: key.pem
+  tasks:
+    - name: Ensure Infisical Python SDK is installed on controller
+      ansible.builtin.pip:
+        name: infisicalsdk
+        state: present
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Login to Infisical
+      infisical.vault.login:
+        url: "https://infisical-prod-01.infisical-prod-01.internal.dontddos.me"
+        auth_method: universal_auth
+        universal_auth_client_id: "{{ infisical_client_id }}"
+        universal_auth_client_secret: "{{ infisical_client_secret }}"
+      register: infisical_login
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Read secrets using cached login
+      infisical.vault.read_secrets:
+        login_data: "{{ infisical_login.login_data }}"
+        project_id: "{{ infisical_project_id }}"
+        env_slug: "prod"
+        path: "{{ infisical_secret_path }}"
+        as_dict: true
+      register: secrets
+      delegate_to: localhost
+      become: false
+      run_once: true
+
+    - name: Create missing docker certificate secrets for this host
+      infisical.vault.create_secret:
+        login_data: "{{ infisical_login.login_data }}"
+        project_id: "{{ infisical_project_id }}"
+        env_slug: "prod"
+        path: "{{ infisical_secret_path }}"
+        secret_name: "{{ inventory_hostname }}_{{ item.suffix }}"
+        secret_value: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../docker-keys/' ~ inventory_hostname ~ '/' ~ item.file) }}"
+      loop: "{{ infisical_docker_cert_secrets }}"
+      when: "{{ (inventory_hostname ~ '_' ~ item.suffix) not in secrets.secrets }}"
+      no_log: true
+      delegate_to: localhost
+      become: false
