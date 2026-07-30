@@ -1,0 +1,15 @@
+- name: Restart Authentik outpost - Docker
+  hosts: debian
+  become: true
+  vars_files:
+    - ../vault.enc
+  gather_facts: false
+  tasks:
+    - name: Stop Authentik outpost
+      ansible.builtin.docker_container:
+        name: ak-outpost-{{ inventory_hostname }}
+        state: stopped
+    - name: Start Authentik outpost
+      ansible.builtin.docker_container:
+        name: ak-outpost-{{ inventory_hostname }}
+        state: started
