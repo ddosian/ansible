@@ -216,6 +216,7 @@
     - name: Start Traefik container
       ansible.builtin.shell:
         cmd: infisical run --path=/Traefik-Global --env=prod -- docker compose -f /containers/traefik/compose.yaml up -d
+      become: true
     - name: Ensure Alloy config directory exists
       ansible.builtin.file:
         path: /containers/alloy
